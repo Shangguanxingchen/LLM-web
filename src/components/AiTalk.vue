@@ -11,26 +11,33 @@
     <div class="main" ref="talkMain">
       <ul class="infinite-list" style="overflow: auto">
         <li class="infinite-list-item">
-          <div class="hisItem" v-if="inputSearchValue">
+          <div class="hisItem" v-for="(item,index) in historyList" :key="index">
+            <!-- <div class="time">{{ item.time }}</div> -->
             <div class="cus">
-              <div class="que">{{ inputSearchValue }}</div>
+              <div class="que">{{ item.input }}</div>
               <div class="customerNames"><i class="el-icon-s-custom"></i></div>
             </div>
             <div class="ans">
               <div class="serverNames">AI</div>
-              <div class="servWp">
-                <div class="answer" v-if="qwen && qwenAnswer">
-                    {{ qwenAnswer }}
-                </div>
-                <div class="answer" v-if="seek && seekAnswer">
-                    {{ seekAnswer }}
-                </div>
-                <div class="answer" v-if="gpt4 && gpt4Answer">
-                    {{ gpt4Answer }}
-                </div>
-                <!-- <div class="copy-wp" @click="copyTextToEditor">
-                  <span class="copy">copy</span>
-                </div> -->
+              <div class="servWp" @mouseenter="showCopy(index)" @mouseleave="showCopy">
+                <div v-for="(subItem,subIndex) in item.data" :key="subIndex">
+                
+                  <div class="answer" v-if="subItem.type === 'qs'">
+                      {{ subItem.data }}
+                  </div>
+                  <div class="answer" v-if="subItem.type === 'dk'">
+                      {{ subItem.data }}
+                  </div>
+                  <div class="answer" v-if="subItem.type === 'gpt'">
+                      {{ subItem.data }}
+                      <!-- <vue-markdown :source="item.qwenAnswer"></vue-markdown> -->
+                  </div>
+                  <div class="copy-wp" :class="{'isShow':index===currentItemIndex}" @click="copyTextToEditor(item)">
+                    <!-- <span class="copy">copy</span> -->
+                    <i class="el-icon-document-copy" style="color:#007aff" v-if="!copySuccess"></i>
+                    <i class="el-icon-check" style="color:#007aff" v-else></i>
+                  </div>
+                </div>  
               </div>
             </div>
           </div>
@@ -41,6 +48,7 @@
       <div class="ask-wp">
         <div class="ask-input">
           <el-input
+            clearable
             placeholder="..."
             v-model="inputSearchValue"
             @keyup.enter.native="searchBtnClick"
@@ -64,110 +72,341 @@
 </template>
   
   <script>
-import { getChatgptAnswer,getQwenAnswer,getSeekAnswer,getGpt4Answer } from "@/api";
+  // import { quillEditor } from 'vue-quill-editor'
+  // import "quill/dist/quill.core.css"; 
+  // import "quill/dist/quill.snow.css"; 
+  // import "quill/dist/quill.bubble.css"; 
+  // import VueMarkdown from 'vue-markdown'
+// import { getAnswer,getQwenAnswer,getSeekAnswer,getGpt4Answer, getHistoryList } from "@/api";
+import { getAnswer, getHistoryList } from "@/api";
 export default {
+  components: {
+    // VueMarkdown
+  },
   data() {
     return {
       inputSearchValue: ``,
       loading: false,
-    //   his: JSON.parse(localStorage.getItem(`his`)) || [],
-      qwen: false,
+      historyList: [],
+      qwen: true,
       seek: false,
-      gpt4: true,
-      qwenAnswer: "",
-      seekAnswer: "",
-      gpt4Answer: "",
+      gpt4: false,
+      currentItemIndex: "",
+      copySuccess: false
     };
   },
-  mounted() {},
+  mounted() {
+    this.getHistoryList();
+  },
   computed: {},
   methods: {
+    getHistoryList() {
+      let params={
+        user: "ss"
+      }
+      this.loading = true
+      getHistoryList(params).then((res) => {
+        this.loading = false
+        if(res.code === 200) {
+          this.historyList = res.data
+        }
+      }).catch(() => {
+        this.loading = false
+      })
+    },
+    showCopy(index) {
+      if(index || index === 0) {
+        this.currentItemIndex = index
+      } else {
+        this.currentItemIndex = ''
+      }
+    },
     searchBtnClick() {
       if (!this.inputSearchValue) {
         this.$message.info(`请输入搜索内容`);
         return;
       }
-    //   this.getChatgptAnswer();
-    this.getAnswer()
+      this.getAnswer()
     },
     getAnswer() {
-        let searchValue = this.inputSearchValue
-        if(this.qwen) {
-            this.loading = true;
-            const params = {
-                text: searchValue,
-            };
-            getQwenAnswer(params).then((res) => {
-                this.loading = false;
-                if (res.code === 200) {
-                    this.qwenAnswer = res.msg;
-                }
-            }).catch(() => {
-                this.loading = false;
-            })
-        }
-        if(this.seek) {
-            this.loading = true;
-            const params = {
-                text: searchValue,
-            };
-            getSeekAnswer(params).then((res) => {
-                this.loading = false;
-                if (res.code === 200) {
-                    this.seekAnswer = res.msg;
-                }
-            }).catch(() => {
-                this.loading = false;
-            })
-        }
-        if(this.gpt4) {
-            this.loading = true;
-            const params = {
-                prompt: "",
-                param_code: "13oHvdLbrT",
-                uname: "admin",
-                pwd: "admin123",
-                text: searchValue,
-            };
-            getGpt4Answer(params).then((res) => {
-                this.loading = false;
-                if (res.code === 200) {
-                    this.gpt4Answer = res.data;
-                }
-            }).catch(() => {
-                this.loading = false;
-            })
-        }
-    },
-    getChatgptAnswer() {
-      this.loading = true;
-      const params = {
-        text: this.inputSearchValue,
-      };
-      getChatgptAnswer(params)
-        .then((res) => {
-          this.loading = false;
+      let params = {
+        user: "ss",
+        input: this.inputSearchValue,
+        sub_time: new Date().getTime()
+      }
+      if(this.qwen && !this.seek && !this.gpt4) {
+        params.type = "qs"
+        this.loading = true
+        getAnswer(params).then((res) => {
           if (res.code === 200) {
-            let obj = {
-              question: this.inputSearchValue,
-              answer: res.msg,
-            };
-            this.his.push(obj);
-            this.inputSearchValue = ``;
-            localStorage.setItem(`his`, JSON.stringify(this.his));
-            let scrollHeight = this.$refs.talkMain.scrollHeight;
-            let offsetHeight = this.$refs.talkMain.offsetHeight;
-            this.$nextTick(() => {
-              this.$refs.talkMain.scrollTo(0, scrollHeight + offsetHeight);
-            });
+            this.loading = false
+            this.pushToHistory(this.inputSearchValue, res.data)
           }
+        }).catch(() => {
+          this.loading = false
+        })
+      } else if(!this.qwen && this.seek && !this.gpt4) {
+        params.type = "dk"
+        this.loading = true
+        getAnswer(params).then((res) => {
+          if (res.code === 200) {
+            this.loading = false
+            this.pushToHistory(this.inputSearchValue, undefined, res.data)
+          }
+        }).catch(() => {
+          this.loading = false
+        })
+      } else if(!this.qwen && !this.seek && this.gpt4) {
+        params.type = "gpt"
+        this.loading = true
+        getAnswer(params).then((res) => {
+          if (res.code === 200) {
+            this.loading = false
+            this.pushToHistory(this.inputSearchValue, undefined, undefined, res.data)
+          }
+        }).catch(() => {
+          this.loading = false
+        })
+      } else if(this.qwen && this.seek &&!this.gpt4) { 
+        const qwen = new Promise((resolve, reject) => {
+          params.type = "qs"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        const seek = new Promise((resolve, reject) => {
+          params.type = "dk"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        }); 
+        this.loading = true
+        Promise.all([qwen, seek])
+        .then(result => {
+          this.loading = false
+          this.pushToHistory(this.inputSearchValue, result[0], result[1])
         })
         .catch(() => {
-          this.loading = false;
+          this.loading = false
         });
+      } else if(this.qwen && !this.seek && this.gpt4) {
+        const qwen = new Promise((resolve, reject) => {
+          params.type = "qs"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        const gpt = new Promise((resolve, reject) => {
+          params.type = "gpt"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        this.loading = true
+        Promise.all([qwen, gpt])
+       .then(result => {
+          this.loading = false
+          this.pushToHistory(this.inputSearchValue, result[0], undefined, result[1])
+        })
+       .catch(() => {
+        this.loading = false
+       });
+      } else if(!this.qwen && this.seek && this.gpt4) {
+        const seek = new Promise((resolve, reject) => {
+          params.type = "dk"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        const gpt = new Promise((resolve, reject) => {
+          params.type = "gpt"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        this.loading = true
+        Promise.all([seek, gpt])
+        .then(result => {
+          this.loading = false
+          this.pushToHistory(this.inputSearchValue, undefined, result[0], result[1])
+        })
+       .catch(() => {
+        this.loading = false
+       });
+      } else if(this.qwen && this.seek && this.gpt4) {
+        const qwen = new Promise((resolve, reject) => {
+          params.type = "qs"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        const seek = new Promise((resolve, reject) => {
+          params.type = "dk"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        const gpt = new Promise((resolve, reject) => {
+          params.type = "gpt"
+          getAnswer(params).then((res) => {
+            if (res.code === 200) {
+              resolve(res.data);
+            }
+          }).catch((err) => {
+            reject(err)
+          })
+        });
+        this.loading = true
+        Promise.all([qwen, seek, gpt])
+       .then(result => {
+          this.loading = false
+          this.pushToHistory(this.inputSearchValue,result[0], result[1], result[2])
+        })
+        .catch(() => {
+          this.loading = false
+        });
+      }
     },
-    copyTextToEditor(answer) {
-      navigator.clipboard.writeText(answer);
+    pushToHistory(que, qw, seek, gpt) {
+      if(qw && !seek && !gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: qw,
+            type: "qs",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (qw && seek &&!gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: qw,
+            type: "qs",
+            ctime: new Date().getTime()
+          },
+          {
+            data: seek,
+            type: "dk",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (qw && seek && gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: qw,
+            type: "qs",
+            ctime: new Date().getTime()
+          },
+          {
+            data: seek,
+            type: "dk",
+            ctime: new Date().getTime()
+          },
+          {
+            data: gpt,
+            type: "gpt",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (!qw && seek && !gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: seek,
+            type: "dk",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (!qw && seek && gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: seek,
+            type: "dk",
+            ctime: new Date().getTime()
+          },
+          {
+            data: gpt,
+            type: "gpt",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (!qw &&!seek && gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: gpt,
+            type: "gpt",
+            ctime: new Date().getTime()
+          }]
+        })
+      } else if (qw &&!seek && gpt) {
+        this.historyList.push({
+          input: que,
+          data: [{
+            data: qw,
+            type: "qs",
+            ctime: new Date().getTime()
+          },
+          {
+            data: gpt,
+            type: "gpt",
+            ctime: new Date().getTime()
+          }]
+        })
+      } 
+      this.inputSearchValue = ""
+      let scrollHeight = this.$refs.talkMain.scrollHeight;
+      let offsetHeight = this.$refs.talkMain.offsetHeight;
+      this.$nextTick(() => {
+        this.$refs.talkMain.scrollTo(0, scrollHeight + offsetHeight);
+      });
+    },
+    copyTextToEditor(item) {
+      let arr = item.data
+      let value = ""
+      for(let i = 0; i < arr.length; i++) {
+        value += arr[i].data + "\n\n"
+      }
+      navigator.clipboard.writeText(value);
+      this.copySuccess = true;
+      setTimeout(() => {
+        this.copySuccess = false;
+      }, 1000);
     },
   },
 };
@@ -182,6 +421,7 @@ export default {
   width: 600px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  margin: 0 auto;
   .header {
     height: 50px;
     flex: none;
@@ -222,7 +462,7 @@ export default {
   }
   .main {
     overflow: auto;
-    margin-bottom: 43px;
+    margin-bottom: 60px;
     // height: calc(100% - 90px);
   }
 }
@@ -289,8 +529,19 @@ export default {
     border-radius: 15px;
   }
 
+  .servWp {
+    position: relative;
+  }
+
   .copy-wp {
-    margin-top: 2px;
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    cursor: pointer;
+  }
+  .isShow {
+    display: block;
   }
   .copy {
     cursor: pointer;

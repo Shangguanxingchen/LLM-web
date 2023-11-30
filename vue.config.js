@@ -5,7 +5,7 @@ module.exports = defineConfig({
   devServer: {
     proxy: {
       '/': {
-        target: `https://xj.chinaamc.com:8000/`,
+        target: `https://www.500jf.com/`,
         changeOrigin: true,
         ws:false,
         pathRewrite: {
@@ -13,6 +13,9 @@ module.exports = defineConfig({
         },
       },
     },
-    open: true
+    open: true,
+    client: {
+      overlay: false,
+    },
   },
 })

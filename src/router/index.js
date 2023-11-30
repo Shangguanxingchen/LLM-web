@@ -33,19 +33,19 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  NProgress.start()
-  let token = localStorage.getItem(`token`)
-  if (to.name !== `login` && token == null) {
-    next({ name: `login` })
-  } else {
-    next()
-  }
-  NProgress.done()
-})
+// router.beforeEach((to, from, next) => {
+//   NProgress.start()
+//   let token = localStorage.getItem(`token`)
+//   if (to.name !== `login` && token == null) {
+//     next({ name: `login` })
+//   } else {
+//     next()
+//   }
+//   NProgress.done()
+// })
 
-router.afterEach(() => {
-  NProgress.done()
-})
+// router.afterEach(() => {
+//   NProgress.done()
+// })
 
 export default router

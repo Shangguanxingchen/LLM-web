@@ -1,7 +1,7 @@
 import fetch from './fetch'
-export function getChatgptAnswer(data) {
+export function getAnswer(data) {
     return fetch({
-      url: "stuck_work/api/qwen_7b_api/",
+      url: "qa",
       method: `POST`,
       data,
     })
@@ -25,5 +25,11 @@ export function getGpt4Answer(data) {
       url: "https://bot.chinaamc.com/az_chat/f_chat",
       method: `POST`,
       data,
+    })
+}
+export function getHistoryList(params) {
+    return fetch({
+      url: `https://www.500jf.com/amcoder/qa?user=${params.user}`,
+      method: `get`,
     })
 }
