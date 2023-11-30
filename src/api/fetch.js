@@ -4,7 +4,7 @@ import axios from 'axios'
 const service = axios.create({
 //   baseURL: process.env.NODE_ENV === "development" ? "/" : "https://xj.chinaamc.com:8000/" ,
   baseURL: "",
-  timeout: 30 * 1000, // 请求超时时间
+  timeout: 120 * 1000, // 请求超时时间
 })
 
 service.interceptors.request.use(
@@ -14,6 +14,9 @@ service.interceptors.request.use(
     //     config.headers[`Content-Type`] = `multipart/form-data`
     //   }
     // }
+    if (config.url !== `user_sign`) {
+      config.headers[`ck`] = localStorage.getItem(`token`)
+    }
     return config
   },
   (error) => {

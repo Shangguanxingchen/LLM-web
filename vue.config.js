@@ -13,7 +13,7 @@ module.exports = defineConfig({
         },
       },
     },
-    open: true,
+    // open: true,
     client: {
       overlay: false,
     },

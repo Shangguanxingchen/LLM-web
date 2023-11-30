@@ -41,8 +41,8 @@
 </template>
   
   <script>
-import { getUserInfo } from "@/api";
-import { mapActions } from "vuex";
+import { getToken } from "@/api";
+import { mapMutations } from "vuex";
 export default {
   components: {},
   data() {
@@ -66,7 +66,7 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          // this.loginFun();
+          this.loginFun();
         } else {
           return false;
         }
@@ -77,18 +77,18 @@ export default {
     },
     loginFun() {
       let params = {
-        uname: this.ruleForm.userName,
+        name: this.ruleForm.userName,
         pwd: this.ruleForm.passWd,
       };
       this.loading = true;
-      getUserInfo(params)
+      getToken(params)
         .then((res) => {
           this.loading = false;
           if (res.code === 200) {
             this.setToken(res.ck);
             this.setUserName(this.ruleForm.userName);
             this.$router.push(`/`);
-          } else if (res.code === 202) {
+          } else if (res.code === 201) {
             this.$message.error(res.msg);
           }
         })
@@ -96,7 +96,7 @@ export default {
           this.loading = false;
         });
     },
-    ...mapActions([`setToken`, `setUserName`]),
+    ...mapMutations([`setToken`, `setUserName`]),
   },
 };
 </script>

@@ -1,4 +1,11 @@
 import fetch from './fetch'
+export function getToken(data) {
+    return fetch({
+      url: "user_sign",
+      method: `POST`,
+      data,
+    })
+}
 export function getAnswer(data) {
     return fetch({
       url: "qa",
@@ -6,30 +13,30 @@ export function getAnswer(data) {
       data,
     })
 }
-export function getQwenAnswer(data) {
-    return fetch({
-      url: "http://10.34.37.5:8000/stuck_work/api/qwen_7b_api/",
-      method: `POST`,
-      data,
-    })
-}
-export function getSeekAnswer(data) {
-    return fetch({
-      url: "http://10.34.37.5:8000/stuck_work/api/seek/",
-      method: `POST`,
-      data,
-    })
-}
-export function getGpt4Answer(data) {
-    return fetch({
-      url: "https://bot.chinaamc.com/az_chat/f_chat",
-      method: `POST`,
-      data,
-    })
-}
+// export function getQwenAnswer(data) {
+//     return fetch({
+//       url: "http://10.34.37.5:8000/stuck_work/api/qwen_7b_api/",
+//       method: `POST`,
+//       data,
+//     })
+// }
+// export function getSeekAnswer(data) {
+//     return fetch({
+//       url: "http://10.34.37.5:8000/stuck_work/api/seek/",
+//       method: `POST`,
+//       data,
+//     })
+// }
+// export function getGpt4Answer(data) {
+//     return fetch({
+//       url: "https://bot.chinaamc.com/az_chat/f_chat",
+//       method: `POST`,
+//       data,
+//     })
+// }
 export function getHistoryList(params) {
     return fetch({
-      url: `https://www.500jf.com/amcoder/qa?user=${params.user}`,
+      url: `qa?user=${params.user}`,
       method: `get`,
     })
 }

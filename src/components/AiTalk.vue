@@ -12,9 +12,11 @@
       <ul class="infinite-list" style="overflow: auto">
         <li class="infinite-list-item">
           <div class="hisItem" v-for="(item,index) in historyList" :key="index">
-            <!-- <div class="time">{{ item.time }}</div> -->
             <div class="cus">
-              <div class="que">{{ item.input }}</div>
+              <div>
+                <div class="cus-time">{{ item.sub_time }}</div>
+                <div class="que">{{ item.input }}</div>
+              </div>
               <div class="customerNames"><i class="el-icon-s-custom"></i></div>
             </div>
             <div class="ans">
@@ -22,15 +24,27 @@
               <div class="servWp" @mouseenter="showCopy(index)" @mouseleave="showCopy">
                 <div v-for="(subItem,subIndex) in item.data" :key="subIndex">
                 
-                  <div class="answer" v-if="subItem.type === 'qs'">
-                      {{ subItem.data }}
+                  <div class="answer-wp" v-if="subItem.type === 'qs'">
+                      <!-- {{ subItem.data }} -->
+                      <!-- <div v-html="subItem.data"></div> -->
+                      <div class="ans-time">{{ subItem.ctime }}</div>
+                      <div class="answer">
+                        <vue-markdown :source="subItem.data" :style="{ pre: { 'backgroun-color': '#000' } }"></vue-markdown>
+                      </div>
                   </div>
-                  <div class="answer" v-if="subItem.type === 'dk'">
-                      {{ subItem.data }}
+                  <div class="answer-wp" v-if="subItem.type === 'dk'">
+                      <!-- {{ subItem.data }} -->
+                      <div class="ans-time">{{ subItem.ctime }}</div>
+                      <div class="answer">
+                        <vue-markdown :source="subItem.data"></vue-markdown>
+                      </div>
                   </div>
-                  <div class="answer" v-if="subItem.type === 'gpt'">
-                      {{ subItem.data }}
-                      <!-- <vue-markdown :source="item.qwenAnswer"></vue-markdown> -->
+                  <div class="answer-wp" v-if="subItem.type === 'gpt'">
+                      <!-- {{ subItem.data }} -->
+                      <div class="ans-time">{{ subItem.ctime }}</div>
+                      <div class="answer">
+                        <vue-markdown :source="subItem.data"></vue-markdown>
+                      </div>
                   </div>
                   <div class="copy-wp" :class="{'isShow':index===currentItemIndex}" @click="copyTextToEditor(item)">
                     <!-- <span class="copy">copy</span> -->
@@ -72,43 +86,73 @@
 </template>
   
   <script>
+  // import marked from 'marked';
   // import { quillEditor } from 'vue-quill-editor'
   // import "quill/dist/quill.core.css"; 
   // import "quill/dist/quill.snow.css"; 
   // import "quill/dist/quill.bubble.css"; 
-  // import VueMarkdown from 'vue-markdown'
+import VueMarkdown from 'vue-markdown'
 // import { getAnswer,getQwenAnswer,getSeekAnswer,getGpt4Answer, getHistoryList } from "@/api";
 import { getAnswer, getHistoryList } from "@/api";
+import {getTime} from '@/utils/util'
+import { mapState } from "vuex";
 export default {
   components: {
-    // VueMarkdown
+    VueMarkdown
   },
   data() {
     return {
       inputSearchValue: ``,
       loading: false,
-      historyList: [],
+      historyList: [
+      // {
+      //       "input": "hi",
+      //       "data": [
+      //           {
+      //               "data": "\n你的问题似乎有些模糊，但是我会假设你想要一个基本的SQL SELECT查询。这是一个简单的例子：\n\n```sql\nSELECT column1, column2, ...\nFROM table_name;\n```\n\n在这个例子中，你需要将`column1, column2, ...`替换为你想要从表中选择的列的名称，将`table_name`替换为你想要从中选择的表的名称。\n\n如果你想要从多个表中选择数据，你可以使用JOIN语句。例如：\n\n```sql\nSELECT Orders.OrderID, Customers.CustomerName\nFROM Orders\nINNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID;\n```\n\n在这个例子中，我们从`Orders`表和`Customers`表中选择`OrderID`和`CustomerName`列，其中`Orders`表的`CustomerID`列与`Customers`表的`CustomerID`列匹配。\n",
+      //               "type": "qs",
+      //               "ctime": "2023-11-30 09:47:02"
+      //           }
+      //       ],
+      //       "sub_time": "2023-11-30 09:47:00"
+      //   },
+      ],
       qwen: true,
       seek: false,
       gpt4: false,
       currentItemIndex: "",
+      createTime: "",
       copySuccess: false
     };
   },
   mounted() {
     this.getHistoryList();
+    setTimeout(() => {
+      this.scroll()
+    }, 300)
   },
-  computed: {},
+  computed: {
+    ...mapState({
+      userName: state => state.userName
+    })
+  },
   methods: {
     getHistoryList() {
       let params={
-        user: "ss"
+        user: this.userName
       }
       this.loading = true
       getHistoryList(params).then((res) => {
         this.loading = false
         if(res.code === 200) {
+          // console.log(res.data);
+          // for (let i = 0; i < res.data.length; i++) {
+          //  for (let j = 0; j < res.data[i].data.length; j++) {
+          //   res.data[i].data[j].data = marked(res.data[i].data[j].data)
+          //  }
+          // }
           this.historyList = res.data
+          // console.log(this.historyList);
         }
       }).catch(() => {
         this.loading = false
@@ -129,10 +173,11 @@ export default {
       this.getAnswer()
     },
     getAnswer() {
+      this.createTime = getTime()
       let params = {
-        user: "ss",
+        user: this.userName,
         input: this.inputSearchValue,
-        sub_time: new Date().getTime()
+        sub_time: this.createTime
       }
       if(this.qwen && !this.seek && !this.gpt4) {
         params.type = "qs"
@@ -140,10 +185,11 @@ export default {
         getAnswer(params).then((res) => {
           if (res.code === 200) {
             this.loading = false
-            this.pushToHistory(this.inputSearchValue, res.data)
+            this.pushToHistory(this.inputSearchValue, res)
           }
         }).catch(() => {
           this.loading = false
+          window.location.reload()
         })
       } else if(!this.qwen && this.seek && !this.gpt4) {
         params.type = "dk"
@@ -151,10 +197,11 @@ export default {
         getAnswer(params).then((res) => {
           if (res.code === 200) {
             this.loading = false
-            this.pushToHistory(this.inputSearchValue, undefined, res.data)
+            this.pushToHistory(this.inputSearchValue, undefined, res)
           }
         }).catch(() => {
           this.loading = false
+          window.location.reload()
         })
       } else if(!this.qwen && !this.seek && this.gpt4) {
         params.type = "gpt"
@@ -162,17 +209,18 @@ export default {
         getAnswer(params).then((res) => {
           if (res.code === 200) {
             this.loading = false
-            this.pushToHistory(this.inputSearchValue, undefined, undefined, res.data)
+            this.pushToHistory(this.inputSearchValue, undefined, undefined, res)
           }
         }).catch(() => {
           this.loading = false
+          window.location.reload()
         })
       } else if(this.qwen && this.seek &&!this.gpt4) { 
         const qwen = new Promise((resolve, reject) => {
           params.type = "qs"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -182,7 +230,7 @@ export default {
           params.type = "dk"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -196,13 +244,14 @@ export default {
         })
         .catch(() => {
           this.loading = false
+          window.location.reload()
         });
       } else if(this.qwen && !this.seek && this.gpt4) {
         const qwen = new Promise((resolve, reject) => {
           params.type = "qs"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -212,7 +261,7 @@ export default {
           params.type = "gpt"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -226,13 +275,14 @@ export default {
         })
        .catch(() => {
         this.loading = false
+        window.location.reload()
        });
       } else if(!this.qwen && this.seek && this.gpt4) {
         const seek = new Promise((resolve, reject) => {
           params.type = "dk"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -242,7 +292,7 @@ export default {
           params.type = "gpt"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -256,13 +306,14 @@ export default {
         })
        .catch(() => {
         this.loading = false
+        window.location.reload()
        });
       } else if(this.qwen && this.seek && this.gpt4) {
         const qwen = new Promise((resolve, reject) => {
           params.type = "qs"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -272,7 +323,7 @@ export default {
           params.type = "dk"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -282,7 +333,7 @@ export default {
           params.type = "gpt"
           getAnswer(params).then((res) => {
             if (res.code === 200) {
-              resolve(res.data);
+              resolve(res);
             }
           }).catch((err) => {
             reject(err)
@@ -296,6 +347,7 @@ export default {
         })
         .catch(() => {
           this.loading = false
+          window.location.reload()
         });
       }
     },
@@ -303,93 +355,103 @@ export default {
       if(qw && !seek && !gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: qw,
+            data: qw.data,
             type: "qs",
-            ctime: new Date().getTime()
+            ctime: qw.ctime
           }]
         })
       } else if (qw && seek &&!gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: qw,
+            data: qw.data,
             type: "qs",
-            ctime: new Date().getTime()
+            ctime: qw.ctime
           },
           {
-            data: seek,
+            data: seek.data,
             type: "dk",
-            ctime: new Date().getTime()
+            ctime: seek.ctime
           }]
         })
       } else if (qw && seek && gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: qw,
+            data: qw.data,
             type: "qs",
-            ctime: new Date().getTime()
+            ctime: qw.ctime
           },
           {
-            data: seek,
+            data: seek.data,
             type: "dk",
-            ctime: new Date().getTime()
+            ctime: seek.ctime
           },
           {
-            data: gpt,
+            data: gpt.data,
             type: "gpt",
-            ctime: new Date().getTime()
+            ctime: gpt.ctime
           }]
         })
       } else if (!qw && seek && !gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: seek,
+            data: seek.data,
             type: "dk",
-            ctime: new Date().getTime()
+            ctime: seek.ctime
           }]
         })
       } else if (!qw && seek && gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: seek,
+            data: seek.data,
             type: "dk",
-            ctime: new Date().getTime()
+            ctime: seek.ctime
           },
           {
-            data: gpt,
+            data: gpt.data,
             type: "gpt",
-            ctime: new Date().getTime()
+            ctime: gpt.ctime
           }]
         })
       } else if (!qw &&!seek && gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: gpt,
+            data: gpt.data,
             type: "gpt",
-            ctime: new Date().getTime()
+            ctime: gpt.ctime
           }]
         })
       } else if (qw &&!seek && gpt) {
         this.historyList.push({
           input: que,
+          sub_time: this.createTime,
           data: [{
-            data: qw,
+            data: qw.data,
             type: "qs",
-            ctime: new Date().getTime()
+            ctime: qw.ctime
           },
           {
-            data: gpt,
+            data: gpt.data,
             type: "gpt",
-            ctime: new Date().getTime()
+            ctime: gpt.ctime
           }]
         })
       } 
       this.inputSearchValue = ""
+      this.scroll()
+    },
+    scroll() {
       let scrollHeight = this.$refs.talkMain.scrollHeight;
       let offsetHeight = this.$refs.talkMain.offsetHeight;
       this.$nextTick(() => {
@@ -418,7 +480,7 @@ export default {
   flex-direction: column;
   position: relative;
   height: 100vh;
-  width: 600px;
+  width: 1000px;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 0 auto;
@@ -497,6 +559,11 @@ export default {
   align-items: center;
   justify-content: flex-end;
   margin-bottom: 10px;
+  .cus-time {
+    font-size: 12px;
+    color: #ccc;
+    text-align: right;
+  }
   .que {
     background: rgb(0, 122, 255);
     color: #fff;
@@ -508,11 +575,17 @@ export default {
     font-size: 16px;
     border-radius: 15px;
     line-height: 18px;
-    max-width: 80%;
-    //   padding-left: 4%;
-    //   padding: 5px;
+    // max-width: 80%;
     padding: 12px 16px;
-    margin-left: 20%;
+    // margin-left: 20%;
+  }
+}
+.answer-wp {
+  margin-bottom: 10px;
+  .ans-time {
+    font-size: 12px;
+    color: #ccc;
+    text-align: left;
   }
 }
 .ans {
@@ -525,7 +598,6 @@ export default {
     padding: 12px 16px;
     overflow: auto;
     word-wrap: break-word;
-    margin-top: 10px;
     border-radius: 15px;
   }
 
@@ -556,6 +628,11 @@ export default {
     }
   }
 }
-
+::v-deep pre {
+  background-color: #101012;
+  padding: 10px;
+  border-radius: 12px;
+  color:#fff;
+}
 </style>
   
