@@ -13,6 +13,13 @@ export function getAnswer(data) {
       data,
     })
 }
+export function isLike(data) {
+    return fetch({
+      url: "qa",
+      method: `PUT`,
+      data,
+    })
+}
 // export function getQwenAnswer(data) {
 //     return fetch({
 //       url: "http://10.34.37.5:8000/stuck_work/api/qwen_7b_api/",

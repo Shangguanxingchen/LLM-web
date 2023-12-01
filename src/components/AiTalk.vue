@@ -1,11 +1,11 @@
 <template>
   <div class="talk-container" ref="talkContainer" v-loading="loading">
     <div class="header">
-        <h3>会话区</h3>
+        <h2>amcoder-web <span class="innertest">(内部测试)</span></h2>
         <div>
-            <el-checkbox v-model="qwen">Q</el-checkbox>
-            <el-checkbox v-model="seek" >S</el-checkbox>
-            <el-checkbox v-model="gpt4" >GPT4</el-checkbox>
+            <el-checkbox v-model="qwen">Q模型</el-checkbox>
+            <!-- <el-checkbox v-model="seek" >S</el-checkbox> -->
+            <el-checkbox v-model="gpt4" >G模型</el-checkbox>
         </div>
     </div>
     <div class="main" ref="talkMain">
@@ -15,42 +15,60 @@
             <div class="cus">
               <div>
                 <div class="cus-time">{{ item.sub_time }}</div>
-                <div class="que">{{ item.input }}</div>
+                <div class="que" v-html="item.input"></div>
               </div>
               <div class="customerNames"><i class="el-icon-s-custom"></i></div>
             </div>
             <div class="ans">
               <div class="serverNames">AI</div>
-              <div class="servWp" @mouseenter="showCopy(index)" @mouseleave="showCopy">
+              <div class="servWp" >
                 <div v-for="(subItem,subIndex) in item.data" :key="subIndex">
-                
                   <div class="answer-wp" v-if="subItem.type === 'qs'">
                       <!-- {{ subItem.data }} -->
                       <!-- <div v-html="subItem.data"></div> -->
                       <div class="ans-time">{{ subItem.ctime }}</div>
-                      <div class="answer">
-                        <vue-markdown :source="subItem.data" :style="{ pre: { 'backgroun-color': '#000' } }"></vue-markdown>
+                      <div class="answer" @mouseenter="showCopy(subItem.f_id)" @mouseleave="showCopy('')">
+                        <!-- <vue-markdown :source="subItem.data"></vue-markdown> -->
+                        <div class="markdown-body" v-html="subItem.data"></div>
+                        <div class="answer-tips">由Q模型生成，仅供参考</div>
+                        <div class="copy-wp" :class="{'isShow':subItem.f_id===currentItemIndex}">
+                          <i class="el-icon-document-copy custom-icon" v-if="!copySuccess" @click="copyTextToEditor(subItem)"></i>
+                          <i class="el-icon-check custom-icon " v-else></i>
+                          <i class="iconfont icon-good-fill custom-icon" v-if="subItem.up" @click="isGoodIdea(subItem,0, 0)"></i>
+                          <i class="iconfont icon-good custom-icon" v-else @click="isGoodIdea(subItem,1, 0)"></i>
+                          <i class="iconfont icon-bad-fill custom-icon" v-if="subItem.down" @click="isGoodIdea(subItem,0,0)"></i>
+                          <i class="iconfont icon-bad custom-icon" v-else @click="isGoodIdea(subItem,0,1)"></i>
+                        </div>
                       </div>
                   </div>
                   <div class="answer-wp" v-if="subItem.type === 'dk'">
-                      <!-- {{ subItem.data }} -->
                       <div class="ans-time">{{ subItem.ctime }}</div>
                       <div class="answer">
-                        <vue-markdown :source="subItem.data"></vue-markdown>
+                        <!-- <vue-markdown :source="subItem.data"></vue-markdown> -->
+                        <div class="markdown-body" v-html="subItem.data"></div>
+                        <div class="answer-tips">由S模型生成，仅供参考</div>
                       </div>
                   </div>
                   <div class="answer-wp" v-if="subItem.type === 'gpt'">
-                      <!-- {{ subItem.data }} -->
                       <div class="ans-time">{{ subItem.ctime }}</div>
-                      <div class="answer">
-                        <vue-markdown :source="subItem.data"></vue-markdown>
+                      <div class="answer" @mouseenter="showCopy(subItem.f_id)" @mouseleave="showCopy('')">
+                        <!-- <vue-markdown :source="subItem.data"></vue-markdown> -->
+                        <div class="markdown-body" v-html="subItem.data"></div>
+                        <div class="answer-tips">由G模型生成，仅供参考</div>
+                        <div class="copy-wp" :class="{'isShow':subItem.f_id===currentItemIndex}">
+                          <i class="el-icon-document-copy custom-icon" v-if="!copySuccess" @click="copyTextToEditor(subItem)"></i>
+                          <i class="el-icon-check custom-icon " v-else></i>
+                          <i class="iconfont icon-good-fill custom-icon" v-if="subItem.up" @click="isGoodIdea(subItem,0, 0)"></i>
+                          <i class="iconfont icon-good custom-icon" v-else @click="isGoodIdea(subItem,1, 0)"></i>
+                          <i class="iconfont icon-bad-fill custom-icon" v-if="subItem.down" @click="isGoodIdea(subItem,0,0)"></i>
+                          <i class="iconfont icon-bad custom-icon" v-else @click="isGoodIdea(subItem,0,1)"></i>
+                        </div>
                       </div>
                   </div>
-                  <div class="copy-wp" :class="{'isShow':index===currentItemIndex}" @click="copyTextToEditor(item)">
-                    <!-- <span class="copy">copy</span> -->
-                    <i class="el-icon-document-copy" style="color:#007aff" v-if="!copySuccess"></i>
-                    <i class="el-icon-check" style="color:#007aff" v-else></i>
-                  </div>
+                  <!-- <div class="copy-wp" :class="{'isShow':index===currentItemIndex}" @click="copyTextToEditor(item)">
+                    <i class="el-icon-document-copy" style="color:#007aff;font-size: 30px;" v-if="!copySuccess"></i>
+                    <i class="el-icon-check" style="color:#007aff;font-size: 30px;" v-else></i>
+                  </div> -->
                 </div>  
               </div>
             </div>
@@ -61,13 +79,19 @@
     <div class="footer">
       <div class="ask-wp">
         <div class="ask-input">
-          <el-input
+          <!-- <el-input
             clearable
             placeholder="..."
             v-model="inputSearchValue"
             @keyup.enter.native="searchBtnClick"
           >
-          </el-input>
+          </el-input> -->
+          <quill-editor
+            ref="myQuillEditor"
+            v-model="inputSearchValue"
+            :options="editorOption"
+          >
+          </quill-editor>
         </div>
         <div class="ask-btn">
           <el-button
@@ -86,44 +110,56 @@
 </template>
   
   <script>
-  // import marked from 'marked';
-  // import { quillEditor } from 'vue-quill-editor'
-  // import "quill/dist/quill.core.css"; 
-  // import "quill/dist/quill.snow.css"; 
-  // import "quill/dist/quill.bubble.css"; 
-import VueMarkdown from 'vue-markdown'
-// import { getAnswer,getQwenAnswer,getSeekAnswer,getGpt4Answer, getHistoryList } from "@/api";
-import { getAnswer, getHistoryList } from "@/api";
+  
+import { marked } from 'marked'
+import hljs from 'highlight.js' // 代码块高亮
+import 'highlight.js/styles/github.css' // 代码块高亮样式
+// import "highlight.js/styles/monokai-sublime.css";
+// import 'github-markdown-css' // 
+import { htmlToText } from 'html-to-text'
+
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+
+import { quillEditor } from 'vue-quill-editor'
+import "@/assets/font/iconfont.css"
+// import VueMarkdown from 'vue-markdown'
+import { getAnswer, getHistoryList, isLike } from "@/api";
 import {getTime} from '@/utils/util'
 import { mapState } from "vuex";
 export default {
   components: {
-    VueMarkdown
+    // VueMarkdown
+    quillEditor
   },
   data() {
     return {
       inputSearchValue: ``,
       loading: false,
-      historyList: [
-      // {
-      //       "input": "hi",
-      //       "data": [
-      //           {
-      //               "data": "\n你的问题似乎有些模糊，但是我会假设你想要一个基本的SQL SELECT查询。这是一个简单的例子：\n\n```sql\nSELECT column1, column2, ...\nFROM table_name;\n```\n\n在这个例子中，你需要将`column1, column2, ...`替换为你想要从表中选择的列的名称，将`table_name`替换为你想要从中选择的表的名称。\n\n如果你想要从多个表中选择数据，你可以使用JOIN语句。例如：\n\n```sql\nSELECT Orders.OrderID, Customers.CustomerName\nFROM Orders\nINNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID;\n```\n\n在这个例子中，我们从`Orders`表和`Customers`表中选择`OrderID`和`CustomerName`列，其中`Orders`表的`CustomerID`列与`Customers`表的`CustomerID`列匹配。\n",
-      //               "type": "qs",
-      //               "ctime": "2023-11-30 09:47:02"
-      //           }
-      //       ],
-      //       "sub_time": "2023-11-30 09:47:00"
-      //   },
-      ],
+      historyList: [],
       qwen: true,
       seek: false,
       gpt4: false,
       currentItemIndex: "",
       createTime: "",
-      copySuccess: false
+      copySuccess: false,
+      editorOption: {
+        //  富文本编辑器配置
+        modules: {
+          //工具栏定义的
+          // toolbar: toolbarOptions
+        },
+        //主题
+        theme: "",
+        placeholder: "..."
+      }
     };
+  },
+  created() {
+    this.$nextTick(() => {
+      this.initMarkdown()
+    })
   },
   mounted() {
     this.getHistoryList();
@@ -137,6 +173,21 @@ export default {
     })
   },
   methods: {
+    initMarkdown() {
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        gfm: true,
+        pedantic: false,
+        sanitize: false,
+        tables: true,
+        breaks: false,
+        smartLists: true,
+        smartypants: false,
+        highlight: function (code) {
+          return hljs.highlightAuto(code).value;
+        }
+      });
+    },
     getHistoryList() {
       let params={
         user: this.userName
@@ -145,22 +196,20 @@ export default {
       getHistoryList(params).then((res) => {
         this.loading = false
         if(res.code === 200) {
-          // console.log(res.data);
-          // for (let i = 0; i < res.data.length; i++) {
-          //  for (let j = 0; j < res.data[i].data.length; j++) {
-          //   res.data[i].data[j].data = marked(res.data[i].data[j].data)
-          //  }
-          // }
+          for (let i = 0; i < res.data.length; i++) {
+           for (let j = 0; j < res.data[i].data.length; j++) {
+            res.data[i].data[j].data = marked.parse(res.data[i].data[j].data)
+           }
+          }
           this.historyList = res.data
-          // console.log(this.historyList);
         }
       }).catch(() => {
         this.loading = false
       })
     },
-    showCopy(index) {
-      if(index || index === 0) {
-        this.currentItemIndex = index
+    showCopy(id) {
+      if(id) {
+        this.currentItemIndex = id
       } else {
         this.currentItemIndex = ''
       }
@@ -352,99 +401,136 @@ export default {
       }
     },
     pushToHistory(que, qw, seek, gpt) {
+      let queNew = marked.parse(que)
       if(qw && !seek && !gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: qw.data,
+            data: marked.parse(qw.data),
             type: "qs",
-            ctime: qw.ctime
+            ctime: qw.ctime,
+            f_id: qw.f_id,
+            up: qw.up,
+            down: qw.down
           }]
         })
       } else if (qw && seek &&!gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: qw.data,
+            data: marked.parse(qw.data),
             type: "qs",
-            ctime: qw.ctime
+            ctime: qw.ctime,
+            f_id: qw.f_id,
+            up: qw.up,
+            down: qw.down
           },
           {
-            data: seek.data,
+            data: marked.parse(seek.data),
             type: "dk",
-            ctime: seek.ctime
+            ctime: seek.ctime,
+            f_id: seek.f_id,
+            up: seek.up,
+            down: seek.down
           }]
         })
       } else if (qw && seek && gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: qw.data,
+            data: marked.parse(qw.data),
             type: "qs",
-            ctime: qw.ctime
+            ctime: qw.ctime,
+            f_id: qw.f_id,
+            up: qw.up,
+            down: qw.down
           },
           {
-            data: seek.data,
+            data: marked.parse(seek.data),
             type: "dk",
-            ctime: seek.ctime
+            ctime: seek.ctime,
+            f_id: seek.f_id,
+            up: seek.up,
+            down: seek.down
           },
           {
-            data: gpt.data,
+            data: marked.parse(gpt.data),
             type: "gpt",
-            ctime: gpt.ctime
+            ctime: gpt.ctime,
+            f_id: gpt.f_id,
+            up: gpt.up,
+            down: gpt.down
           }]
         })
       } else if (!qw && seek && !gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: seek.data,
+            data: marked.parse(seek.data),
             type: "dk",
-            ctime: seek.ctime
+            ctime: seek.ctime,
+            f_id: seek.f_id,
+            up: seek.up,
+            down: seek.down
           }]
         })
       } else if (!qw && seek && gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: seek.data,
+            data: marked.parse(seek.data),
             type: "dk",
-            ctime: seek.ctime
+            ctime: seek.ctime,
+            f_id: seek.f_id,
+            up: seek.up,
+            down: seek.down
           },
           {
-            data: gpt.data,
+            data: marked.parse(gpt.data),
             type: "gpt",
-            ctime: gpt.ctime
+            ctime: gpt.ctime,
+            f_id: gpt.f_id,
+            up: gpt.up,
+            down: gpt.down
           }]
         })
       } else if (!qw &&!seek && gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: gpt.data,
+            data: marked.parse(gpt.data),
             type: "gpt",
-            ctime: gpt.ctime
+            ctime: gpt.ctime,
+            f_id: gpt.f_id,
+            up: gpt.up,
+            down: gpt.down
           }]
         })
       } else if (qw &&!seek && gpt) {
         this.historyList.push({
-          input: que,
+          input: queNew,
           sub_time: this.createTime,
           data: [{
-            data: qw.data,
+            data: marked.parse(qw.data),
             type: "qs",
-            ctime: qw.ctime
+            ctime: qw.ctime,
+            f_id: qw.f_id,
+            up: qw.up,
+            down: qw.down
           },
           {
-            data: gpt.data,
+            data: marked.parse(gpt.data),
             type: "gpt",
-            ctime: gpt.ctime
+            ctime: gpt.ctime,
+            f_id: gpt.f_id,
+            up: gpt.up,
+            down: gpt.down
           }]
         })
       } 
@@ -459,10 +545,14 @@ export default {
       });
     },
     copyTextToEditor(item) {
-      let arr = item.data
       let value = ""
-      for(let i = 0; i < arr.length; i++) {
-        value += arr[i].data + "\n\n"
+      if( typeof item.type === "string") {
+        value = htmlToText(item.data)
+      } else {
+        let arr = item.data
+        for(let i = 0; i < arr.length; i++) {
+          value += htmlToText(arr[i].data) + "\n\n"
+        }
       }
       navigator.clipboard.writeText(value);
       this.copySuccess = true;
@@ -470,20 +560,55 @@ export default {
         this.copySuccess = false;
       }, 1000);
     },
+    isGoodIdea(item,goodIdea,badIdea) {
+      let params = {
+        f_id: item.f_id,
+        up: goodIdea,
+        down: badIdea,
+      }
+      isLike(params).then(res => {
+        if(res.code === 200) {
+          if (goodIdea) {
+            this.renderIdea(item,goodIdea,badIdea)
+          } else {
+            this.renderIdea(item,0,badIdea)
+          }
+          if (badIdea) {
+            this.renderIdea(item,goodIdea,badIdea)
+          } else {
+            this.renderIdea(item,goodIdea,0)
+          }
+          
+        }
+      })
+    },
+    renderIdea(item,goodIdea,badIdea) {
+      let list = this.historyList
+      for (let i = 0; i < list.length; i++) {
+        for (let j = 0; j < list[i].data.length; j++) {
+          if(list[i].data[j].f_id === item.f_id) {
+            list[i].data[j].up = goodIdea
+            list[i].data[j].down = badIdea
+          }
+        }
+      }
+    }
   },
 };
 </script>
   
   <style lang="less" scoped>
+  
 .talk-container {
   display: flex;
   flex-direction: column;
   position: relative;
   height: 100vh;
-  width: 1000px;
+  // width: 1000px;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 0 auto;
+  padding: 0 30px;
   .header {
     height: 50px;
     flex: none;
@@ -491,41 +616,50 @@ export default {
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
+    h2 {
+      display: flex;
+      align-items: center;
+    }
   }
-
+  .innertest {
+    font-size: 14px;
+    margin-left: 5px;
+  }
   .footer {
     width: 100%;
-    position: absolute;
-    left: 0px;
-    bottom: 16px;
-    flex: none;
+    // position: absolute;
+    // left: 0px;
+    // bottom: 16px;
+    // flex: none;
   }
   .ask-wp {
-    width: 95%;
+    width: 85%;
     margin: 0 auto;
     border-radius: 20px;
     border: 2px solid rgb(0, 122, 255);
     display: flex;
+    background: #fff;
     .ask-input {
-      width: 80%;
-      .el-input {
-        margin-left: 10px;
-      }
-      ::v-deep .el-input__inner {
-        border: 1px solid transparent;
-      }
+      width: 90%;
+      max-height: 120px;
+      overflow-y: auto;
+      // .el-input {
+      //   margin-left: 10px;
+      // }
+      // ::v-deep .el-input__inner {
+      //   border: 1px solid transparent;
+      // }
     }
     .ask-btn {
-      width: 20%;
+      width: 10%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
   }
   .main {
+    flex: 1;
     overflow: auto;
-    margin-bottom: 60px;
-    // height: calc(100% - 90px);
   }
 }
 .hisItem {
@@ -534,7 +668,7 @@ export default {
   font-size: 16px;
   margin: 0 auto 10px;
   padding-bottom: 5px;
-  border-bottom: 1px dashed #ccc;
+  border-bottom: 1px dashed #000;
   .create-time {
     margin-bottom: 5px;
   }
@@ -581,11 +715,18 @@ export default {
   }
 }
 .answer-wp {
-  margin-bottom: 10px;
+  margin-bottom: 26px;
   .ans-time {
     font-size: 12px;
     color: #ccc;
     text-align: left;
+  }
+  .answer-tips {
+    font-size: 12px;
+    color: #ccc;
+    text-align: left;
+    padding-top:6px;
+    border-top: 1px dashed #ccc;
   }
 }
 .ans {
@@ -599,6 +740,10 @@ export default {
     overflow: auto;
     word-wrap: break-word;
     border-radius: 15px;
+    position: relative;
+    ::v-deep p {
+      line-height: 28px;
+    }
   }
 
   .servWp {
@@ -608,8 +753,8 @@ export default {
   .copy-wp {
     display: none;
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: 0px;
+    right: 0px;
     cursor: pointer;
   }
   .isShow {
@@ -628,11 +773,18 @@ export default {
     }
   }
 }
+.custom-icon {
+  color:#007aff;
+  font-size: 30px;
+  cursor: pointer;
+  margin: 0 5px;
+}
 ::v-deep pre {
-  background-color: #101012;
+  background-color: #f8f7f1;
+  // color:#fff;
   padding: 10px;
+  border: 1px solid #ccc;
   border-radius: 12px;
-  color:#fff;
 }
 </style>
   
