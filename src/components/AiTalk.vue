@@ -149,6 +149,24 @@ export default {
         modules: {
           //工具栏定义的
           // toolbar: toolbarOptions
+          keyboard: {
+            bindings: {
+              shift_enter: {
+                  key: 13,
+                  shiftKey: true,
+                  handler: (range, ctx) => {
+                    this.searchBtnClick()
+                    // this.$refs.myQuillEditor.quill.insertText(range.index, '\n');
+                  }
+              },
+              // enter: {
+              //     key: 13,
+              //     handler: () => { // submit form }
+              //       this.$emit('searchBtnClick')
+              //     }
+              // }
+            }
+          }
         },
         //主题
         theme: "",
@@ -164,6 +182,7 @@ export default {
   mounted() {
     this.getHistoryList();
     setTimeout(() => {
+      this.addCopyBtnToCode()
       this.scroll()
     }, 300)
   },
@@ -592,6 +611,29 @@ export default {
           }
         }
       }
+    },
+    addCopyBtnToCode() {
+      const codeElements = document.querySelectorAll('pre code');
+      for (let i = 0; i < codeElements.length; i++) {
+        const codeElement = codeElements[i];
+        // 创建复制按钮元素
+        const copyButton = document.createElement('span');
+        copyButton.textContent = '复制';
+        copyButton.classList.add('copy-code-button');
+        copyButton.addEventListener('click', function() {
+          // 复制代码行到剪贴板
+          navigator.clipboard.writeText(codeElement.innerText).then(function() {
+            copyButton.textContent = '复制成功';
+            setTimeout(() => {
+              copyButton.textContent = '复制';
+            }, 500);
+          }, function(err) {
+            console.error('Failed to copy to clipboard: ', err);
+          });
+        });
+        // 将复制按钮添加到code元素的右侧
+        codeElement.parentNode.insertBefore(copyButton, codeElement.nextSibling);
+      }
     }
   },
 };
@@ -604,7 +646,7 @@ export default {
   flex-direction: column;
   position: relative;
   height: 100vh;
-  // width: 1000px;
+  // width: 600px;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 0 auto;
@@ -779,12 +821,29 @@ export default {
   cursor: pointer;
   margin: 0 5px;
 }
-::v-deep pre {
-  background-color: #f8f7f1;
-  // color:#fff;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
+
+::v-deep {
+  pre {
+    background-color: #f8f7f1;
+    // color:#fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    position: relative;
+  }
+  .copy-code-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: #ccc;
+    border-radius: 10px;
+    padding: 3px 5px;
+    cursor: pointer;
+    &:hover {
+      color: #fff;
+      background: #ccc;
+    }
+  }
 }
 </style>
   
