@@ -251,8 +251,8 @@ export default {
         params.type = "qs"
         this.loading = true
         getAnswer(params).then((res) => {
+          this.loading = false
           if (res.code === 200) {
-            this.loading = false
             this.pushToHistory(this.inputSearchValue, res)
           }
         }).catch(() => {
@@ -263,8 +263,8 @@ export default {
         params.type = "dk"
         this.loading = true
         getAnswer(params).then((res) => {
+          this.loading = false
           if (res.code === 200) {
-            this.loading = false
             this.pushToHistory(this.inputSearchValue, undefined, res)
           }
         }).catch(() => {
@@ -275,8 +275,8 @@ export default {
         params.type = "gpt"
         this.loading = true
         getAnswer(params).then((res) => {
+          this.loading = false
           if (res.code === 200) {
-            this.loading = false
             this.pushToHistory(this.inputSearchValue, undefined, undefined, res)
           }
         }).catch(() => {
