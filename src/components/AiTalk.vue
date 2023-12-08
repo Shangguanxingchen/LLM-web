@@ -555,6 +555,9 @@ export default {
       } 
       this.inputSearchValue = ""
       this.scroll()
+      this.$nextTick( () => {
+        this.addCopyBtnToCode()
+      })
     },
     scroll() {
       let scrollHeight = this.$refs.talkMain.scrollHeight;
@@ -616,9 +619,16 @@ export default {
       const codeElements = document.querySelectorAll('pre code');
       for (let i = 0; i < codeElements.length; i++) {
         const codeElement = codeElements[i];
+        const lang = codeElements[i].getAttribute('class').split("-")[1];
         // 创建复制按钮元素
+        const copyWp = document.createElement('div');
+        copyWp.classList.add('copy-code-wp');
+        const langSpan = document.createElement('span');
+        langSpan.textContent = lang;
         const copyButton = document.createElement('span');
         copyButton.textContent = '复制';
+        copyWp.appendChild(langSpan);
+        copyWp.appendChild(copyButton);
         copyButton.classList.add('copy-code-button');
         copyButton.addEventListener('click', function() {
           // 复制代码行到剪贴板
@@ -632,7 +642,7 @@ export default {
           });
         });
         // 将复制按钮添加到code元素的右侧
-        codeElement.parentNode.insertBefore(copyButton, codeElement.nextSibling);
+        codeElement.parentNode.insertBefore(copyWp, codeElement);
       }
     }
   },
@@ -831,10 +841,15 @@ export default {
     border-radius: 12px;
     position: relative;
   }
+  .copy-code-wp {
+    display: flex;
+    justify-content: space-between;
+    opacity: 0.5;
+  }
   .copy-code-button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
+    //position: absolute;
+    //right: 10px;
+    //top: 10px;
     color: #ccc;
     border-radius: 10px;
     padding: 3px 5px;
