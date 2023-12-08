@@ -642,7 +642,10 @@ export default {
           });
         });
         // 将复制按钮添加到code元素的右侧
-        codeElement.parentNode.insertBefore(copyWp, codeElement);
+        if(!codeElement.getAttribute('addCopyBtn')) {
+          codeElement.parentNode.insertBefore(copyWp, codeElement);
+          codeElement.setAttribute('addCopyBtn', true)
+        }
       }
     }
   },
