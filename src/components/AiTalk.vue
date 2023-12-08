@@ -803,14 +803,18 @@ export default {
 
   .servWp {
     position: relative;
+    width: 100%;
   }
 
   .copy-wp {
     display: none;
     position: absolute;
-    bottom: 0px;
-    right: 0px;
+    bottom: 2px;
+    right: 2px;
     cursor: pointer;
+    background: #fff;
+    border-radius: 15px;
+    padding: 8px;
   }
   .isShow {
     display: block;
@@ -833,6 +837,9 @@ export default {
   font-size: 30px;
   cursor: pointer;
   margin: 0 5px;
+  &:hover {
+    color: darken(#007aff, 20);
+  }
 }
 
 ::v-deep {
@@ -853,7 +860,7 @@ export default {
     //position: absolute;
     //right: 10px;
     //top: 10px;
-    color: #ccc;
+    // color: #ccc;
     border-radius: 10px;
     padding: 3px 5px;
     cursor: pointer;
