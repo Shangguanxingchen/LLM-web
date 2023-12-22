@@ -3,13 +3,14 @@
     <div class="header">
         <h2>amcoder-web <span class="innertest">(内部测试)</span></h2>
         <div>
+            <el-checkbox v-model="context">参考上下文</el-checkbox>
             <el-checkbox v-model="qwen">Q模型</el-checkbox>
             <!-- <el-checkbox v-model="seek" >S</el-checkbox> -->
             <el-checkbox v-model="gpt4" >G模型</el-checkbox>
         </div>
     </div>
-    <div class="main" ref="talkMain">
-      <ul class="infinite-list" style="overflow: auto">
+    <div class="main">
+      <ul class="infinite-list" style="overflow: auto" ref="talkMain">
         <li class="infinite-list-item">
           <div class="hisItem" v-for="(item,index) in historyList" :key="index">
             <div class="cus">
@@ -75,6 +76,19 @@
           </div>
         </li>
       </ul>
+      <!-- <div class="quick-zone">
+        <div class="send-item" v-for="(item,index) in quickZoneDate" :key="index">
+          <div style="width: 80%; border: 1px solid #e6e6e6; border-radius: 3px;">
+            <quill-editor
+              v-model="item.value"
+              :options="editorOption"
+            >
+            </quill-editor>
+          </div>
+          <el-button type="primary" @click="sendQuickValue(item)" class="send-btn" size="mini">发送</el-button>
+        </div>
+        <div><el-button type="primary" icon="el-icon-circle-plus-outline" @click="addQuickZoneDate" size="mini"></el-button></div>
+      </div> -->
     </div>
     <div class="footer">
       <div class="ask-wp">
@@ -141,9 +155,17 @@ export default {
       qwen: true,
       seek: false,
       gpt4: false,
+      //参考上下文
+      context:false,
       currentItemIndex: "",
       createTime: "",
       copySuccess: false,
+      // 快捷区
+      quickZoneDate: [
+        {
+          value: "hi",
+        }
+      ],
       editorOption: {
         //  富文本编辑器配置
         modules: {
@@ -173,6 +195,14 @@ export default {
         placeholder: "..."
       }
     };
+  },
+  watch: {
+    quickZoneDate: {
+      handler() {
+        localStorage.setItem("quickZoneDate", JSON.stringify(this.quickZoneDate))
+      },
+      deep: true
+    }
   },
   created() {
     this.$nextTick(() => {
@@ -233,6 +263,16 @@ export default {
         this.currentItemIndex = ''
       }
     },
+    // 快捷区域的发送
+    sendQuickValue(item) {
+      this.inputSearchValue = item.value
+      this.searchBtnClick()
+    },
+    addQuickZoneDate() {
+      this.quickZoneDate.push({
+        value: "",
+      })
+    },
     searchBtnClick() {
       if (!this.inputSearchValue) {
         this.$message.info(`请输入搜索内容`);
@@ -241,11 +281,13 @@ export default {
       this.getAnswer()
     },
     getAnswer() {
+      // console.log(this.$refs.myQuillEditor.quill.getText());
       this.createTime = getTime()
       let params = {
         user: this.userName,
         input: this.inputSearchValue,
-        sub_time: this.createTime
+        sub_time: this.createTime,
+        pre_type: this.context ? "1" : "0",
       }
       if(this.qwen && !this.seek && !this.gpt4) {
         params.type = "qs"
@@ -663,7 +705,7 @@ export default {
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 0 0 0 30px;
   .header {
     height: 50px;
     flex: none;
@@ -674,6 +716,22 @@ export default {
     h2 {
       display: flex;
       align-items: center;
+    }
+  }
+  .quick-zone {
+      width: 20%;
+      flex: none;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 5px;
+      margin: 3px;
+      overflow: auto;
+    }
+  .send-item {
+    display: flex;
+    margin: 10px;
+    .send-btn {
+      margin-left: 10px;
     }
   }
   .innertest {
@@ -715,6 +773,7 @@ export default {
   .main {
     flex: 1;
     overflow: auto;
+    display: flex;
   }
 }
 .hisItem {
