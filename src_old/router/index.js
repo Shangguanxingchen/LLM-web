@@ -12,42 +12,8 @@ NProgress.configure({ showSpinner: false })
 const routes = [
   {
     path: '/',
-    // name: 'home',
+    name: 'home',
     component: HomeView,
-    redirect: `/index`,
-    children: [
-      {
-        path: `index`,
-        name: `index`,
-        component: () => import('../views/AiTalkStream.vue'),
-      },
-      {
-        path: `translate`,
-        name: `translate`,
-        component: () => import('../views/TranslateView.vue'),
-      },
-      {
-        path: `annotation`,
-        name: `annotation`,
-        component: () => import('../views/AnnotationView.vue'),
-      },
-      {
-        path: `optimize`,
-        name: `optimize`,
-        component: () => import('../views/OptimizeView.vue'),
-      },
-      {
-        path: `generate`,
-        name: `generate`,
-        component: () => import('../views/GenerateView.vue'),
-      },
-      {
-        path: `sql`,
-        name: `sql`,
-        component: () => import('../views/SqlView.vue'),
-      },
-      
-    ]
   },
   {
     path: `/login`,

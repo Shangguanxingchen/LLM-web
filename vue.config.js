@@ -2,6 +2,9 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
   publicPath: "/amcoder",
+  configureWebpack: (config) => {
+    config.devtool = "source-map"
+  },
   devServer: {
     proxy: {
       '/': {
@@ -18,4 +21,5 @@ module.exports = defineConfig({
       overlay: false,
     },
   },
+  lintOnSave: "warning",
 })

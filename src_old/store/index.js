@@ -7,9 +7,6 @@ export default new Vuex.Store({
   state: {
     userName: localStorage.getItem(`name`) || '',
     token: localStorage.getItem(`token`) || '',
-    activeMenu: localStorage.getItem(`activeMenu`) || 'index',
-    modelType: 'qs', //模型
-    context: false //上下文
   },
   getters: {
   },
@@ -22,16 +19,6 @@ export default new Vuex.Store({
       state.token = value
       localStorage.setItem(`token`, value)
     },
-    setModelType(state,value) {
-      state.modelType = value
-    },
-    setContext(state,value) {
-      state.context = value
-    },
-    setActiveMenu(state,value) {
-      state.activeMenu = value
-      localStorage.setItem(`activeMenu`, value)
-    }
   },
   actions: {
   },
