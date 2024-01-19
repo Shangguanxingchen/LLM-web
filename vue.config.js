@@ -8,7 +8,8 @@ module.exports = defineConfig({
   devServer: {
     proxy: {
       '/': {
-        target: `https://www.500jf.com/`,
+        // target: `https://www.500jf.com/`,
+        target: `http://139.129.39.177`,
         changeOrigin: true,
         ws:false,
         pathRewrite: {

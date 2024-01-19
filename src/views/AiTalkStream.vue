@@ -155,7 +155,7 @@ import "@/assets/font/iconfont.css"
 // import VueMarkdown from 'vue-markdown'
 import { getAnswer, getHistoryList, isLike, addHistoryList } from "@/api";
 import {getTime} from '@/utils/util'
-import { mapState } from "vuex";
+import { mapState,mapMutations } from "vuex";
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 export default {
@@ -252,10 +252,12 @@ export default {
     ...mapState({
       userName: state => state.userName,
       modelType: state => state.modelType,
-      context: state => state.context
-    })
+      context: state => state.context,
+      permit: state => state.permit,
+    }),
   },
   methods: {
+    ...mapMutations(["setPermit"]),
     initMarkdown() {
       marked.setOptions({
         renderer: new marked.Renderer(),
@@ -280,11 +282,9 @@ export default {
         this.loading = false
         if(res.code === 200) {
           for (let i = 0; i < res.data.length; i++) {
-          //  for (let j = 0; j < res.data[i].data.length; j++) {
             if(res.data[i].data[0].data) {
               res.data[i].data[0].data = marked.parse(res.data[i].data[0].data)
             }
-          //  }
           }
           this.historyList = res.data
         }
@@ -342,7 +342,7 @@ export default {
       this.createTime = getTime()
       const formData = new FormData()
       formData.append('user', this.userName)
-      formData.append('input', this.inputSearchValue)
+      formData.append('input', this.permit + this.inputSearchValue)
       formData.append('sub_time', this.createTime)
       formData.append('pre_type', this.context ? "1" : "0") //参考上下文
       // if(this.modelType === 'qw') {
@@ -351,7 +351,7 @@ export default {
 
         const controller = new AbortController()
         const signal = controller.signal
-        fetchEventSource('https://www.500jf.com/amcoder/qa', {
+        fetchEventSource('http://139.129.39.177/amcoder/qa', {
             method: 'POST',
             openWhenHidden: true,
             headers: {
@@ -364,7 +364,7 @@ export default {
             signal,
             body: formData,
             onmessage(msg) {
-              console.log(msg);
+              // console.log(msg);
               that.loading = false
               if(msg.data === '|down|') {
                 controller.abort();

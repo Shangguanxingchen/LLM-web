@@ -9,7 +9,8 @@ export default new Vuex.Store({
     token: localStorage.getItem(`token`) || '',
     activeMenu: localStorage.getItem(`activeMenu`) || 'index',
     modelType: 'qs', //模型
-    context: false //上下文
+    context: false, //上下文
+    permit:'' //快捷提问
   },
   getters: {
   },
@@ -31,7 +32,10 @@ export default new Vuex.Store({
     setActiveMenu(state,value) {
       state.activeMenu = value
       localStorage.setItem(`activeMenu`, value)
-    }
+    },
+    setPermit(state,value) {
+      state.permit = value
+    },
   },
   actions: {
   },

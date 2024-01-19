@@ -13,12 +13,23 @@
         <el-menu-item index="translate">代码翻译</el-menu-item>
         <el-menu-item index="annotation">代码注释</el-menu-item>
         <el-menu-item index="optimize">代码优化</el-menu-item>
-        <el-menu-item index="generate">代码生成</el-menu-item>
-        <el-menu-item index="sql">nl2sql</el-menu-item>
+        <!-- <el-menu-item index="generate">代码生成</el-menu-item>
+        <el-menu-item index="sql">nl2sql</el-menu-item> -->
       </el-menu>
     </div>
-    <div>
-      <el-checkbox v-model="context" style="margin-right: 20px" @change="contextChange"
+    <div class="btns">
+      <div class="permit-btns" v-show="modelName === 'index'">
+        <!-- <el-row>
+          <el-button :class="{active:permit==='代码注释'}" plain size="mini" @click="permitClick('代码注释')">代码注释</el-button>
+          <el-button :class="{active:permit==='代码优化'}" plain size="mini" @click="permitClick('代码优化')">代码优化</el-button>
+          <el-button :class="{active:permit==='代码生成'}" plain size="mini" @click="permitClick('代码生成')">代码生成</el-button>
+          <el-button type="primary" plain size="mini">nl2sql</el-button>
+        </el-row> -->
+        <!-- <div class="permit-btn" :class="{active:permit==='代码注释'}" @click="permitClick('代码注释')">代码注释</div>
+        <div class="permit-btn" :class="{active:permit==='代码优化'}" @click="permitClick('代码优化')">代码优化</div>
+        <div class="permit-btn" :class="{active:permit==='代码生成'}" @click="permitClick('代码生成')">代码生成</div> -->
+      </div>
+      <el-checkbox v-model="context" style="margin-left: 20px; margin-right: 20px" @change="contextChange"
         >参考上下文</el-checkbox
       >
       <!-- <el-checkbox v-model="qwen" disabled>Q模型</el-checkbox> -->
@@ -51,10 +62,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["activeMenu"]),
+    ...mapState(["activeMenu","permit"]),
+    modelName() {
+      return this.$route.name
+    }
   },
   methods: {
-    ...mapMutations(["setContext", "setModelType", "setActiveMenu"]),
+    ...mapMutations(["setContext", "setModelType", "setActiveMenu", "setPermit"]),
     modelTypeChange (val) {
       this.setModelType(val);
     },
@@ -63,7 +77,14 @@ export default {
     },
     handleSelect(val) {
       this.setActiveMenu(val);
-    }
+    },
+    permitClick (val) {
+      if(this.permit === val) {
+        this.setPermit('');
+        return
+      } 
+      this.setPermit(val);
+    },
   }
 };
 </script>
@@ -80,5 +101,31 @@ export default {
     display: flex;
     align-items: center;
   }
+  .btns {
+    display: flex;
+    align-items: center;
+    .permit-btns {
+      display: flex;
+    }
+    .permit-btn {
+      font-size: 12px;
+      border-radius: 3px;
+      border: 1px solid #DCDFE6;
+      padding: 7px 15px;
+      cursor: pointer;
+      color: #606266;
+      margin: 0 5px;
+      &:hover {
+        color: rgb(0, 122, 255);
+        border: 1px solid rgb(0, 122, 255);
+      }
+      &.active {
+        color: #fff;
+        border: 1px solid rgb(0, 122, 255);
+        background: rgb(0, 122, 255);
+      }
+    }
+  }
+  
 }
 </style>
