@@ -110,6 +110,7 @@
                         that.loading = false
                         controller.abort()
                         that.outputValue =  marked.parse(newValue)
+                        that.addCopyBtnToCode()
                     },
                     onerror(err){
                         that.loading = false
@@ -127,6 +128,39 @@
                     }, 1000);
                 } else {
                     this.$message.info('请先获取输出结果');
+                }
+            },
+            addCopyBtnToCode() {
+                const codeElements = document.querySelectorAll('pre code');
+                for (let i = 0; i < codeElements.length; i++) {
+                    const codeElement = codeElements[i];
+                    const lang = codeElements[i].getAttribute('class').split("-")[1];
+                    // 创建复制按钮元素
+                    const copyWp = document.createElement('div');
+                    copyWp.classList.add('copy-code-wp');
+                    const langSpan = document.createElement('span');
+                    langSpan.textContent = lang;
+                    const copyButton = document.createElement('span');
+                    copyButton.textContent = '复制';
+                    copyWp.appendChild(langSpan);
+                    copyWp.appendChild(copyButton);
+                    copyButton.classList.add('copy-code-button');
+                    copyButton.addEventListener('click', function() {
+                        // 复制代码行到剪贴板
+                        navigator.clipboard.writeText(codeElement.innerText).then(function() {
+                            copyButton.textContent = '复制成功';
+                            setTimeout(() => {
+                                copyButton.textContent = '复制';
+                            }, 500);
+                        }, function(err) {
+                            console.error('Failed to copy to clipboard: ', err);
+                        });
+                    });
+                    // 将复制按钮添加到code元素的右侧
+                    if(!codeElement.getAttribute('addCopyBtn')) {
+                        codeElement.parentNode.insertBefore(copyWp, codeElement);
+                        codeElement.setAttribute('addCopyBtn', true)
+                    }
                 }
             }
         }
@@ -147,6 +181,29 @@
         overflow: auto;
         min-height: 80%;
         max-height: 88%;
+    }
+}
+::v-deep {
+    pre {
+        // background-color: #f8f7f1;
+        padding: 10px;
+        // border: 1px solid #ccc;
+        // border-radius: 12px;
+        // position: relative;
+    }
+    .copy-code-wp {
+        display: flex;
+        justify-content: space-between;
+        opacity: 0.5;
+    }
+    .copy-code-button {
+        border-radius: 10px;
+        padding: 3px 5px;
+        cursor: pointer;
+        &:hover {
+            color: #fff;
+            background: #ccc;
+        }
     }
 }
 </style>
