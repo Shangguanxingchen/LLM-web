@@ -351,7 +351,7 @@ export default {
 
         const controller = new AbortController()
         const signal = controller.signal
-        fetchEventSource('http://139.129.39.177/amcoder/qa', {
+        fetchEventSource(process.env.VUE_APP_API_URL + 'amcoder/qa', {
             method: 'POST',
             openWhenHidden: true,
             headers: {

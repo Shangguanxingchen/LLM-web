@@ -13,8 +13,8 @@
         <el-menu-item index="translate">代码翻译</el-menu-item>
         <el-menu-item index="annotation">代码注释</el-menu-item>
         <el-menu-item index="optimize">代码优化</el-menu-item>
-        <!-- <el-menu-item index="generate">代码生成</el-menu-item>
-        <el-menu-item index="sql">nl2sql</el-menu-item> -->
+        <el-menu-item index="generate">代码生成</el-menu-item>
+        <!-- <el-menu-item index="sql">nl2sql</el-menu-item> -->
       </el-menu>
     </div>
     <div class="btns">
