@@ -13,8 +13,14 @@
             </quill-editor> -->
             <div v-html="outputValue" ref="outputValue"></div>
         </div>
-        <div>
+        <div class="fun-btns">
             <el-button type="primary" @click="copyBtnClick">{{copyText}}</el-button>
+            <div class="isgood-wp">
+                <i class="iconfont icon-good-fill custom-icon" v-if="answerObj.up" @click="isGoodIdea(0, 0)"></i>
+                <i class="iconfont icon-good custom-icon" v-else @click="isGoodIdea(1, 0)"></i>
+                <i class="iconfont icon-bad-fill custom-icon" v-if="answerObj.down" @click="isGoodIdea(0,0)"></i>
+                <i class="iconfont icon-bad custom-icon" v-else @click="isGoodIdea(0,1)"></i>
+            </div>
         </div>
     </div>
 </template>
@@ -26,12 +32,21 @@
     import { mapState } from "vuex";
     import { getTime } from '@/utils/util'
     import { fetchEventSource } from '@microsoft/fetch-event-source';
+    import { isLike } from "@/api";
     export default {
         data() {
             return {
                 outputValue: '',
+                outputText: '',
                 loading: false,
                 copyText: '复制',
+                answerObj: {
+                    ctime: "",
+                    input: "",
+                    type: "",
+                    up: 0,
+                    down: 0,
+                }
             }
         },
         props: {
@@ -78,6 +93,7 @@
                 let that = this;
                 let value = ''
                 let newValue = ''
+                let obj
                 this.loading = true
                 const formData = new FormData()
                 formData.append('user', this.userName)
@@ -96,7 +112,6 @@
                     signal,
                     body: formData,
                     onmessage(msg) {
-                        // console.log(msg);
                         value += JSON.parse(msg.data).data
                         const count = (value.match(/```/g) || []).length;
                         if(count % 2 === 1){
@@ -105,11 +120,21 @@
                             newValue = value
                         }
                         that.outputValue = marked.parse(newValue)
+                        that.outputText = newValue
+                        obj = JSON.parse(msg.data)
                     },
                     onclose() {
                         that.loading = false
                         controller.abort()
                         that.outputValue =  marked.parse(newValue)
+                        that.answerObj = {
+                            ctime: obj.ctime,
+                            input: obj.input,
+                            type: obj.type,
+                            up: obj.up,
+                            down: obj.down,
+                            f_id: obj.f_id,
+                        }
                         that.addCopyBtnToCode()
                     },
                     onerror(err){
@@ -120,17 +145,19 @@
                 })
             },
             copyBtnClick() {
-                if (this.outputValue) {
-                    navigator.clipboard.writeText(this.$refs.outputValue.innerText);
+                if (this.outputText) {
+                    navigator.clipboard.writeText(this.outputText);
                     this.copyText = '复制成功';
                     setTimeout(() => {
                         this.copyText = '复制';
                     }, 1000);
+                    this.isGoodIdea(1, 0)
                 } else {
                     this.$message.info('请先获取输出结果');
                 }
             },
             addCopyBtnToCode() {
+                let that = this
                 const codeElements = document.querySelectorAll('pre code');
                 for (let i = 0; i < codeElements.length; i++) {
                     const codeElement = codeElements[i];
@@ -152,6 +179,7 @@
                             setTimeout(() => {
                                 copyButton.textContent = '复制';
                             }, 500);
+                            that.isGoodIdea(1, 0)
                         }, function(err) {
                             console.error('Failed to copy to clipboard: ', err);
                         });
@@ -162,7 +190,32 @@
                         codeElement.setAttribute('addCopyBtn', true)
                     }
                 }
-            }
+            },
+            isGoodIdea(goodIdea,badIdea) {
+                if(!this.answerObj.f_id) {
+                    this.$message.warning('请先获取答案后再给点赞哦');
+                    return
+                }
+                let params = {
+                    f_id: this.answerObj.f_id,
+                    up: goodIdea,
+                    down: badIdea,
+                }
+                isLike(params).then(res => {
+                    if(res.code === 200) {
+                        if (goodIdea) {
+                            this.answerObj.up = 1
+                        } else {
+                            this.answerObj.up = 0
+                        }
+                        if (badIdea) {
+                            this.answerObj.down = 1
+                        } else {
+                            this.answerObj.down = 0
+                        }
+                    }
+                })
+            },
         }
     }
 </script>
@@ -181,6 +234,22 @@
         overflow: auto;
         min-height: 80%;
         max-height: 88%;
+    }
+    .fun-btns {
+        display: flex;
+        align-items: center;
+        .isgood-wp {
+            margin-left: 15px;
+        }
+        .custom-icon {
+            color:#007aff;
+            font-size: 30px;
+            cursor: pointer;
+            margin: 0 5px;
+            &:hover {
+                color: darken(#007aff, 20);
+            }
+        }
     }
 }
 ::v-deep {

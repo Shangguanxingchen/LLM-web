@@ -4,7 +4,7 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import HomeView from '../views/HomeView.vue'
 import Login from '../views/LoginView.vue'
-
+import Store from '../store'
 Vue.use(VueRouter)
 
 NProgress.configure({ showSpinner: false })
@@ -78,6 +78,9 @@ router.beforeEach((to, from, next) => {
   if (to.name !== `login` && token == null) {
     next({ name: `login` })
   } else {
+    if(to.name === `index`) {
+      Store.commit(`setActiveMenu`, 'index')
+    }
     next()
   }
   NProgress.done()

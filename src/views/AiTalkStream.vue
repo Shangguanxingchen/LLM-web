@@ -566,7 +566,10 @@ export default {
       const codeElements = document.querySelectorAll('pre code');
       for (let i = 0; i < codeElements.length; i++) {
         const codeElement = codeElements[i];
-        const lang = codeElements[i].getAttribute('class').split("-")[1];
+        let lang = '';
+        if(codeElement && codeElement.getAttribute('class') !== null) {
+          lang = codeElements[i].getAttribute('class').split("-")[1];
+        }
         // 创建复制按钮元素
         const copyWp = document.createElement('div');
         copyWp.classList.add('copy-code-wp');
