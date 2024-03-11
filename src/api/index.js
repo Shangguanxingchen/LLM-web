@@ -1,7 +1,7 @@
 import fetch from './fetch'
 export function getToken(data) {
     return fetch({
-      url: "user_sign",
+      url: "http://223.71.95.78/amcoder/user_sign",
       method: `POST`,
       data,
     })

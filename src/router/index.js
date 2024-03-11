@@ -42,6 +42,11 @@ const routes = [
         component: () => import('../views/GenerateView.vue'),
       },
       {
+        path: `localanswer`,
+        name: `localanswer`,
+        component: () => import('../views/localanswerView.vue'),
+      },
+      {
         path: `sql`,
         name: `sql`,
         component: () => import('../views/SqlView.vue'),
