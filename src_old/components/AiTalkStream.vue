@@ -348,7 +348,7 @@ export default {
 
         const controller = new AbortController()
         const signal = controller.signal
-        fetchEventSource('https://www.500jf.com/amcoder/qa', {
+        fetchEventSource('https://amcoder/qa', {
             method: 'POST',
             openWhenHidden: true,
             headers: {
@@ -417,7 +417,7 @@ export default {
       // const controller = new AbortController()
       // const signal = controller.signal
       // this.loading = true
-      // fetchEventSource('https://www.500jf.com/amcoder/ts?input=' + this.inputSearchValue, {
+      // fetchEventSource('https://www.com/amcoder/ts?input=' + this.inputSearchValue, {
       //     method: 'get',
       //     headers: {
       //         'Content-Type': 'application/json; charset=utf-8',

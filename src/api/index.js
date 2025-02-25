@@ -1,7 +1,7 @@
 import fetch from './fetch'
 export function getToken(data) {
     return fetch({
-      url: "http://223.71.95.78/amcoder/user_sign",
+      url: "http://amcoder/user_sign",
       method: `POST`,
       data,
     })
@@ -22,21 +22,21 @@ export function isLike(data) {
 }
 // export function getQwenAnswer(data) {
 //     return fetch({
-//       url: "http://10.34.37.5:8000/stuck_work/api/qwen_7b_api/",
+//       url: "/stuck_work/api/qwen_7b_api/",
 //       method: `POST`,
 //       data,
 //     })
 // }
 // export function getSeekAnswer(data) {
 //     return fetch({
-//       url: "http://10.34.37.5:8000/stuck_work/api/seek/",
+//       url: "/stuck_work/api/seek/",
 //       method: `POST`,
 //       data,
 //     })
 // }
 // export function getGpt4Answer(data) {
 //     return fetch({
-//       url: "https://bot.chinaamc.com/az_chat/f_chat",
+//       url: "/az_chat/f_chat",
 //       method: `POST`,
 //       data,
 //     })

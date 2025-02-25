@@ -6,17 +6,16 @@ module.exports = defineConfig({
     config.devtool = "source-map"
   },
   devServer: {
-    proxy: {
-      '/': {
-        // target: `https://www.500jf.com/`,
-        target: `http://139.129.39.177`,
-        changeOrigin: true,
-        ws:false,
-        pathRewrite: {
-          '/': ``,
-        },
-      },
-    },
+    // proxy: {
+    //   '/': {
+    //     target: `/`,
+    //     changeOrigin: true,
+    //     ws:false,
+    //     pathRewrite: {
+    //       '/': ``,
+    //     },
+    //   },
+    // },
     // open: true,
     client: {
       overlay: false,

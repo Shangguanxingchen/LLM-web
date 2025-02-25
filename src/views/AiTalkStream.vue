@@ -422,7 +422,7 @@ export default {
       // const controller = new AbortController()
       // const signal = controller.signal
       // this.loading = true
-      // fetchEventSource('https://www.500jf.com/amcoder/ts?input=' + this.inputSearchValue, {
+      // fetchEventSource('https://www/ts?input=' + this.inputSearchValue, {
       //     method: 'get',
       //     headers: {
       //         'Content-Type': 'application/json; charset=utf-8',

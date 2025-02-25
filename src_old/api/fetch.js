@@ -5,8 +5,7 @@ import router from '@/router'
 const enable = true
 // 创建axios实例
 const service = axios.create({
-//   baseURL: process.env.NODE_ENV === "development" ? "/" : "https://xj.chinaamc.com:8000/" ,
-  baseURL: "",
+  baseURL: process.env.NODE_ENV === "development" ? "/" : "" ,
   timeout: 120 * 1000, // 请求超时时间
 })
 
