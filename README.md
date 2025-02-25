@@ -1,4 +1,4 @@
-# amccoder-web
+# llm-web
 
 ## Project setup
 ```
